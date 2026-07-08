@@ -16,7 +16,7 @@ TARGETS = dot_product reduce dot_product_cpp reduce_cpp ring_cpp hello_cuda
 
 NP ?= 2
 
-.PHONY: all clean run-dot_product run-reduce run-dot_product_cpp run-reduce_cpp run-ring_cpp
+.PHONY: all clean run-dot_product run-reduce run-dot_product_cpp run-reduce_cpp run-ring_cpp run-hello_cuda
 
 all: $(TARGETS)
 
@@ -55,6 +55,9 @@ run-ring_cpp: ring_cpp
 # --- CUDA version ---
 hello_cuda: $(CUDA_DIR)/hello.cu
 	$(NVCC) $< -o $@
+
+run-hello_cuda: hello_cuda
+	./hello_cuda
 
 clean:
 	rm -f $(TARGETS)
