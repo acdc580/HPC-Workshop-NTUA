@@ -29,8 +29,19 @@ mpirun --oversubscribe -np 4 ./example1
 * **Point-to-Point Communication:** Created a ring topology (`ring.cpp`) using `MPI_Sendrecv` to pass data sequentially between neighboring processes.
 * **GPU Programming:** Introduced CUDA C++ (`hello.cu`), covering basic kernel execution, thread indices, and block hierarchies.
 
-### Day 3: TBA
-*Details coming soon.*
+### Day 3: Shared-Memory Parallelization with OpenMP
+Shifted from distributed-memory (MPI) to shared-memory parallelism using OpenMP. Covered parallel regions, data-sharing clauses (`shared`, `private`, `firstprivate`), loop parallelization with `#pragma omp for`, and reductions.
+* **Parallel Regions & Threads:** Implemented a Hello World exercise (`HelloWorld.c`) using `#pragma omp parallel`, retrieving thread counts and IDs via `omp_get_num_threads()` and `omp_get_thread_num()`.
+* **Data Sharing:** Explored the difference between `shared`, `private`, and `firstprivate` variables (`variables.c`) and how each affects value visibility across threads.
+* **Loop Parallelization:** Parallelized vector addition (`VecAdd.c`) and dot product (`DotProduct.c`) using `#pragma omp for`, including use of the `reduction` clause for combining per-thread partial results.
+* **Assignment:** Started the Conjugate Gradient (CG) OpenMP assignment — parallelizing `axpy`, `axpyz`, `dot`, and `matvec` kernels, and benchmarking speedup across N = 1e3–1e6 for 1, 3, 6, and 12 threads.
+
+**Manual Compilation & Execution:**
+```bash
+gcc -fopenmp -O3 HelloWorld.c -o helloworld
+export OMP_NUM_THREADS=8
+./helloworld
+```
 
 ### Day 4: TBA
 *Details coming soon.*
