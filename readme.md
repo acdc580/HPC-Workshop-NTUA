@@ -43,5 +43,23 @@ export OMP_NUM_THREADS=8
 ./helloworld
 ```
 
-### Day 4: TBA
-*Details coming soon.*
+### Day 4: 1D Heat Conduction & Conjugate Gradient (MPI & CUDA)
+The final day focused on bringing everything together to solve a physical problem: simulating 1D heat conduction across a rod exposed to convection cooling. This required solving the linear system $Ax = b$ using the Conjugate Gradient (CG) method across two entirely different parallel architectures. 
+
+**Note on Current Status:** Both the MPI and CUDA implementations are currently a Work in Progress (WIP). While the underlying thermodynamics math is mapped out, the architectural edge cases are proving tricky!
+
+* **Distributed Memory (MPI in Fortran):** * **The Goal:** Chop the tridiagonal matrix $A$ into local chunks and solve them across separate processes.
+  * **The Implementation:** Required setting up non-blocking communications (`MPI_Isend`, `MPI_Irecv`, `MPI_Waitall`) so neighboring processes could exchange their boundary "halo" cells (temperatures at the edges of their local arrays) without deadlocking. 
+  * **Current State:** The code compiles and the math tries its best, but it is currently hitting iteration limits and failing to properly output the physical 300K -> 280K -> 400K temperature curve. Debugging message-passing boundaries.
+
+* **GPU Acceleration (CUDA in C++):**
+  * **The Goal:** Offload the heavy linear algebra of the CG solver to the GPU's SIMT architecture.
+  * **The Implementation:** Involved writing custom kernels for matrix-vector multiplication (`matvec`) and vector updates, handling deep pointer structs, explicitly managing host/device memory (`cudaMalloc`, `cudaMemcpy`), and writing a custom block-wise parallel reduction kernel to safely compute the dot product across thousands of threads.
+  * **Current State:** Struggling with missing cluster utility headers and some compilation/memory-linking hurdles. 
+
+**Hypothetical Manual Compilation & Execution (When fixed):**
+
+*For the MPI Fortran version:*
+```bash
+mpif90 project-mpi.f90 -o cg_mpi
+mpirun --oversubscribe -np 4 ./cg_mpi

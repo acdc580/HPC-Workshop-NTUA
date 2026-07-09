@@ -184,7 +184,7 @@ if(myid==0) then
   b=x(1)
   y(1)=1.d0*b
 else
-  a= ! **** TODO **** complete the assignment
+  a=x_recv_from_prev
   b=x(1)
   c=x(2)
   y(1)=(-1.d0)*a+(diag)*b+(-1.d0)*c
@@ -196,7 +196,7 @@ if(myid==numprocs-1) then
 else
   a=x(n-1)
   b=x(n)
-  c= ! *** TODO **** complete the assignment
+  c=x_recv_from_next
   y(n)=(-1.d0)*a+(diag)*b+(-1.d0)*c
 endif
 
@@ -215,15 +215,36 @@ integer tag1, tag2
 real(8) :: x_send_to_prev,x_send_to_next
 integer statuses(MPI_STATUS_SIZE,4), requests(4)
 
+! 1. Identify the neighboring processes
+if (myid == 0) then
+  prev = MPI_PROC_NULL ! The first process has no previous neighbor
+else
+  prev = myid - 1
+endif
+
+if (myid == numprocs - 1) then
+  next = MPI_PROC_NULL ! The last process has no next neighbor
+else
+  next = myid + 1
+endif
+
+! 2. Set arbitrary communication tags to match sends to receives
+tag1 = 1
+tag2 = 2
+
+! 3. Assign the values to be sent from the local array boundaries
 x_recv_from_prev=0.d0
 x_recv_from_next=0.d0
-x_send_to_prev=  ! *** TODO **** complete the assignment
-x_send_to_next=  ! *** TODO **** complete the assignment
+x_send_to_prev=x(1)  
+x_send_to_next=x(n)  
 
+! 4. Initiate non-blocking communications
+call MPI_IRECV(x_recv_from_prev, 1, MPI_REAL8, prev, tag1, MPI_COMM_WORLD, requests(1), error)
+call MPI_IRECV(x_recv_from_next, 1, MPI_REAL8, next, tag2, MPI_COMM_WORLD, requests(2), error)
+call MPI_ISEND(x_send_to_prev, 1, MPI_REAL8, prev, tag2, MPI_COMM_WORLD, requests(3), error)
+call MPI_ISEND(x_send_to_next, 1, MPI_REAL8, next, tag1, MPI_COMM_WORLD, requests(4), error) 
 
-! *** TODO **** 
-! *** write the MPI calls to IRECV and ISEND
-
+! 5. Wait for all 4 requests to complete before doing any math!
+call MPI_WAITALL(4, requests, statuses, error)
 
 end subroutine communication
-
